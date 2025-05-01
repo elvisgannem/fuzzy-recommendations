@@ -14,7 +14,7 @@ extracted_data['extracurricular_activities'] = extracted_data['extracurricular_a
 # Definir variáveis fuzzy
 study_time = ctrl.Antecedent(np.arange(0, 51, 1), 'study_time')
 absences = ctrl.Antecedent(np.arange(0, 11, 1), 'absences')
-extracurricular = ctrl.Antecedent(np.arange(0, 2.01, 0.01), 'extracurricular')
+extracurricular = ctrl.Antecedent(np.arange(0, 1.01, 0.01), 'extracurricular')
 recommendation = ctrl.Consequent(np.arange(0, 101, 1), 'recommendation')
 
 # Funções de pertinência
@@ -26,12 +26,12 @@ absences['low'] = fuzz.trimf(absences.universe, [0, 0, 3])
 absences['medium'] = fuzz.trimf(absences.universe, [2, 4, 6])
 absences['high'] = fuzz.trimf   (absences.universe, [5, 10, 10])
 
-extracurricular['no'] = fuzz.trimf(extracurricular.universe, [0, 0, 0.1])
-extracurricular['yes'] = fuzz.trimf(extracurricular.universe, [0.9, 1, 1])
+extracurricular['no'] = fuzz.trapmf(extracurricular.universe, [0, 0, 0.01, 0.01])
+extracurricular['yes'] = fuzz.trapmf(extracurricular.universe, [0.99, 0.99, 1, 1])
 
 recommendation['basic'] = fuzz.trimf(recommendation.universe, [0, 0, 50])
-recommendation['intermediate'] = fuzz.trimf(recommendation.universe, [30, 50, 70])
-recommendation['advanced'] = fuzz.trimf(recommendation.universe, [70, 100, 100])
+recommendation['intermediate'] = fuzz.trimf(recommendation.universe, [30, 50, 75])
+recommendation['advanced'] = fuzz.trimf(recommendation.universe, [65, 100, 100])
 
 # Visualizar funções de pertinência
 study_time.view()
@@ -85,9 +85,9 @@ extracted_data.to_csv("fuzzy_recommendations_output.csv", index=False)
 print("Arquivo salvo como fuzzy_recommendations_output.csv")
 
 # Contar as categorias de recomendação
-high_recommendation = len(extracted_data[extracted_data['recommendation'] >= 70])
-medium_recommendation = len(extracted_data[(extracted_data['recommendation'] >= 30) & (extracted_data['recommendation'] < 70)])
-low_recommendation = len(extracted_data[extracted_data['recommendation'] < 30])
+high_recommendation = len(extracted_data[extracted_data['recommendation'] > 65])
+medium_recommendation = len(extracted_data[(extracted_data['recommendation'] >= 40) & (extracted_data['recommendation'] <= 65)])
+low_recommendation = len(extracted_data[extracted_data['recommendation'] < 40])
 
 # Calcular as porcentagens
 total = len(extracted_data)
@@ -99,3 +99,12 @@ low_percentage = (low_recommendation / total) * 100
 print(f"Porcentagem de alta recomendação de intervenção: {high_percentage:.2f}%")
 print(f"Porcentagem de média recomendação de intervenção: {medium_percentage:.2f}%")
 print(f"Porcentagem de baixa ou nenhuma recomendação de intervenção: {low_percentage:.2f}%")
+
+summary_df = pd.DataFrame({
+    'Categoria': ['Alta', 'Média', 'Baixa'],
+    'Quantidade': [high_recommendation, medium_recommendation, low_recommendation],
+    'Porcentagem': [high_percentage, medium_percentage, low_percentage]
+})
+
+print("\nResumo das recomendações:")
+print(summary_df.to_string(index=False))
